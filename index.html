@@ -4,11 +4,54 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Back Camera Access</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    video {
+      width: 100%;
+      max-width: 600px;
+      border: 2px solid #ccc;
+    }
+  </style>
 </head>
 <body>
   <h1>Using Back Camera</h1>
   <video id="video" autoplay></video>
-  <script src="index.js"></script>
+  <script>
+    let currentStream;
+
+    async function getStream() {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: { facingMode: { exact: "environment" } } // Request the back camera
+      };
+
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        document.getElementById('video').srcObject = currentStream;
+      } catch (err) {
+        console.error("Error accessing camera: ", err);
+        alert("Unable to access the back camera. Please check camera permissions and try again.");
+      }
+    }
+
+    async function init() {
+      await getStream(); // Attempt to start with the back camera
+    }
+
+    init();
+  </script>
 </body>
 </html>
+
 

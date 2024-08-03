@@ -21,12 +21,20 @@ async function getStream(deviceId) {
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop());
   }
-  const constraints = {
-    video: { deviceId: deviceId ? { exact: deviceId } : undefined }
+
+  const constraints = deviceId ? {
+    video: { deviceId: { exact: deviceId } }
+  } : {
+    video: { facingMode: { exact: "environment" } } // Request the back camera
   };
-  currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-  document.getElementById('video').srcObject = currentStream;
-  currentDeviceId = deviceId;
+
+  try {
+    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+    document.getElementById('video').srcObject = currentStream;
+    currentDeviceId = deviceId;
+  } catch (err) {
+    console.error("Error accessing camera: ", err);
+  }
 }
 
 document.getElementById('switch-camera').addEventListener('click', async () => {
@@ -37,7 +45,8 @@ document.getElementById('switch-camera').addEventListener('click', async () => {
 
 async function init() {
   await getDevices();
-  await getStream(devices.length > 0 ? devices[0].deviceId : undefined);
+  await getStream();  // Attempt to start with the back camera
 }
 
 init();
+

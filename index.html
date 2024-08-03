@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Back Camera Access</title>
+  <title>Take a Picture with Back Camera</title>
   <style>
     body {
       display: flex;
@@ -15,43 +15,70 @@
       font-family: Arial, sans-serif;
     }
     video {
+      display: none;
+    }
+    canvas {
+      display: none;
+    }
+    #snapshot {
       width: 100%;
       max-width: 600px;
       border: 2px solid #ccc;
     }
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
-  <h1>Using Back Camera</h1>
+  <h1>Take a Picture</h1>
   <video id="video" autoplay></video>
+  <canvas id="canvas"></canvas>
+  <img id="snapshot" alt="Snapshot will appear here">
+  <button id="take-photo">Take Photo</button>
+
   <script>
-    let currentStream;
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const snapshot = document.getElementById('snapshot');
+    const takePhotoButton = document.getElementById('take-photo');
 
     async function getStream() {
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-      }
-
       const constraints = {
         video: { facingMode: { exact: "environment" } } // Request the back camera
       };
 
       try {
-        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        document.getElementById('video').srcObject = currentStream;
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
       } catch (err) {
         console.error("Error accessing camera: ", err);
         alert("Unable to access the back camera. Please check camera permissions and try again.");
       }
     }
 
-    async function init() {
-      await getStream(); // Attempt to start with the back camera
+    function takePhoto() {
+      const context = canvas.getContext('2d');
+      // Set canvas dimensions to match video dimensions
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      // Draw the video frame to the canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Convert the canvas image to a data URL and display it
+      const dataURL = canvas.toDataURL('image/png');
+      snapshot.src = dataURL;
+      snapshot.style.display = 'block';
     }
 
-    init();
+    takePhotoButton.addEventListener('click', takePhoto);
+
+    // Initialize camera stream
+    getStream();
   </script>
 </body>
 </html>
+
 
 
